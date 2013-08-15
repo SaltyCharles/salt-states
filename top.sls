@@ -1,14 +1,16 @@
 base:
     '*':
         - hosts
-        - locale
         - openvpn
-        - postfix
         - python
-        - rsyslog
         - users
         - utils
         - vcs
+    'roles:server':
+        - match: grain
+        - locale
+        - postfix
+        - rsyslog
     'roles:celery':
         - match: grain
         - celery
@@ -35,8 +37,10 @@ base:
         - match: grain
         - iptables
         - lxc
-        - nagios-nrpe
         - ntp
+    'G@roles:lxc_host and G@roles:server':
+        - match: compound
+        - nagios-nrpe
         - rclocal
         - sysctl
     'roles:nagios':
