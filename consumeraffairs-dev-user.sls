@@ -82,6 +82,7 @@ pip_install_requirements_{{username}}:
         - require:
             - cmd: clone_consumeraffairs_{{username}}
 
+{#
 {% set hgrc = pillar.get('hgrc', {}).get(grains['fqdn'], {}).get(username) %}
 {% if hgrc %}
 {{home}}/consumeraffairs/.hg/hgrc:
@@ -95,7 +96,7 @@ pip_install_requirements_{{username}}:
         - mode: 660
         - require:
             - cmd: clone_consumeraffairs_{{username}}
-{% endif %}
+{% endif %} #}
 
 {% if 'dev' in grains.get('roles', []) %}
 pip_install_requirements_dev_{{username}}:
