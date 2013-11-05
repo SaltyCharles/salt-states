@@ -173,10 +173,28 @@ def hg_pull(target, cwd=None, source=None, user=None):
     return run_cmd(target, [cmd], kwarg=dict(cwd=cwd, runas=user))
 
 
+def git_fetch(target, cwd=None, source=None, user=None):
+    cwd = cwd or pillar_get('consumeraffairs_path')
+    user = user or pillar_get('consumeraffairs_user')
+    cmd = 'git fetch'
+    if source:
+        cmd += ' ' + source
+    return run_cmd(target, [cmd], kwarg=dict(cwd=cwd, runas=user))
+
+
 def hg_heads(target, cwd=None, branch=None, user=None):
     cwd = cwd or pillar_get('consumeraffairs_path')
     user = user or pillar_get('consumeraffairs_user')
     cmd = 'hg heads'
+    if branch:
+        cmd += ' ' + branch
+    return run_cmd(target, [cmd], kwarg=dict(cwd=cwd, runas=user))
+
+
+def git_log(target, cwd=None, branch=None, user=None):
+    cwd = cwd or pillar_get('consumeraffairs_path')
+    user = user or pillar_get('consumeraffairs_user')
+    cmd = 'git log -1'
     if branch:
         cmd += ' ' + branch
     return run_cmd(target, [cmd], kwarg=dict(cwd=cwd, runas=user))
@@ -269,6 +287,14 @@ def hg_update(target, cwd=None, rev='default', user=None):
         kwarg={'runas': user, 'cwd': cwd})
 
 
+def git_checkout(target, cwd=None, rev='master', user=None):
+    cwd = cwd or pillar_get('consumeraffairs_path') + '/styleguide/frontend'
+    user = user or pillar_get('consumeraffairs_user')
+    return run_cmd(
+        target, ['git checkout %s' % rev],
+        kwarg={'runas': user, 'cwd': cwd})
+
+
 def migrate(target):
     return run_manage(target, 'migrate --noinput')
 
@@ -324,6 +350,18 @@ def push_web_servers(web_servers):
     hg_pull(web_servers)
     hg_heads(web_servers, branch='default')
     hg_update(web_servers)
+    highstate(web_servers)
+    update_pip(web_servers)
+    npm_install(web_servers)
+    brunch_build(web_servers)
+    collectstatic(web_servers)
+    clearpyc(web_servers)
+
+
+def push_web_servers_git(web_servers):
+    git_fetch(web_servers)
+    git_log(web_servers, branch='master')
+    git_checkout(web_servers)
     highstate(web_servers)
     update_pip(web_servers)
     npm_install(web_servers)
