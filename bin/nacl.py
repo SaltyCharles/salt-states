@@ -173,10 +173,10 @@ def hg_pull(target, cwd=None, source=None, user=None):
     return run_cmd(target, [cmd], kwarg=dict(cwd=cwd, runas=user))
 
 
-def git_fetch(target, cwd=None, source=None, user=None):
+def git_pull(target, cwd=None, source=None, user=None):
     cwd = cwd or pillar_get('consumeraffairs_path')
     user = user or pillar_get('consumeraffairs_user')
-    cmd = 'git fetch'
+    cmd = 'git pull'
     if source:
         cmd += ' ' + source
     return run_cmd(target, [cmd], kwarg=dict(cwd=cwd, runas=user))
@@ -359,9 +359,8 @@ def push_web_servers(web_servers):
 
 
 def push_web_servers_git(web_servers):
-    git_fetch(web_servers)
+    git_pull(web_servers)
     git_log(web_servers, branch='master')
-    git_checkout(web_servers)
     highstate(web_servers)
     update_pip(web_servers)
     npm_install(web_servers)
