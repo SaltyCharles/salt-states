@@ -346,7 +346,7 @@ def clearpyc(target):
     return run_cmd(target, [cwd + '/bin/clearpyc'], kwarg={'cwd': cwd})
 
 
-def push_web_servers(web_servers):
+def push_web_servers_hg(web_servers):
     hg_pull(web_servers)
     hg_heads(web_servers, branch='default')
     hg_update(web_servers)
@@ -358,7 +358,7 @@ def push_web_servers(web_servers):
     clearpyc(web_servers)
 
 
-def push_web_servers_git(web_servers):
+def push_web_servers(web_servers):
     git_pull(web_servers)
     git_log(web_servers, branch='master')
     highstate(web_servers)
