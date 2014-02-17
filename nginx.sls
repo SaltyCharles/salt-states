@@ -82,3 +82,10 @@ nginx:
         - group: www-data
         - mode: 775
         - makedirs: True
+
+/var/www/exports/reviews:
+    file.directory:
+        - user: www-data
+        - group: www-data
+        - mode: 775
+        - makedirs: True
