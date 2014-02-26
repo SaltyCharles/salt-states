@@ -158,6 +158,7 @@ def run_cmd(target, *args, **kwargs):
             retcode = d.get('retcode', '<not in result>')
             if retcode != 0:
                 raise RunCmdException('nonzero retcode %s' % retcode)
+    return result
 
 
 def pillar_get(key):
@@ -243,6 +244,17 @@ def celery_production_mode(target=None):
 def inspect_celery(target=None):
     target = target or pillar_get('consumeraffairs_celery_servers')
     return run_manage(target, 'celery inspect active -t 5')
+
+
+def analytics_celery_idle(target=None):
+    target = target or pillar_get('consumeraffairs_celery_servers')
+    try:
+        result = run_manage(
+            target, 'celery inspect active -t 5 -d analytics.%s -qC' % target)
+    except RunCmdException:
+        logging.info('analytics.%s celery queue does not exist', target)
+        return False
+    return '- empty -' in result.get(target, {}).get('stdout', '')
 
 
 def kill_celery(target):
@@ -399,6 +411,7 @@ def production_push():
     web_servers = pillar_get('consumeraffairs_web_servers')
     celery_servers = pillar_get('consumeraffairs_celery_servers')
     celerybeat_server = pillar_get('consumeraffairs_celerybeat_server')
+    analytics_celery_stopped = False
 
     logging.info('Starting production push for %s' % calling_user())
     ping_statsd(mgmt, 'event.deploy.full.start')
@@ -410,6 +423,9 @@ def production_push():
         stop_celerybeat(celerybeat_server)
     inspect_celery(celery_servers)
     stop_celery(celery_servers)
+    if analytics_celery_idle(mgmt):
+        stop_celery(mgmt)
+        analytics_celery_stopped = True
     celery_maintenance_mode(celery_servers)
     migrate(mgmt)
 
@@ -419,6 +435,8 @@ def production_push():
 
     celery_production_mode(web_servers)
     start_celery(celery_servers)
+    if analytics_celery_stopped:
+        start_celery(mgmt)
     if celerybeat_server:
         start_celerybeat(celerybeat_server)
     ping_statsd(mgmt, 'event.deploy.full.complete')
