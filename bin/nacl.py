@@ -391,7 +391,6 @@ def quick_push(revision=None):
     collectstatic(web_servers)
     brunch_build(mgmt)
     collectstatic(mgmt)
-    syncstatic(mgmt)
     ping_statsd(mgmt, 'event.deploy.quick.complete')
 
 
@@ -407,7 +406,6 @@ def production_push():
     push_web_servers(mgmt)
 
     run_unit_tests(mgmt)
-    syncstatic(mgmt)
     if celerybeat_server:
         stop_celerybeat(celerybeat_server)
     inspect_celery(celery_servers)
