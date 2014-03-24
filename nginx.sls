@@ -89,3 +89,16 @@ nginx:
         - group: www-data
         - mode: 775
         - makedirs: True
+
+{% set basic_auth = pillar.get('nginx', {}).get('basic_auth', {}) %}
+{% for filename, users in basic_auth.items() %}
+/etc/nginx/{{filename}}:
+    file.managed:
+        - source: salt://etc/nginx/basic_auth.jinja
+        - template: jinja
+        - context:
+            users: {{users}}
+        - user: www-data
+        - group: www-data
+        - mode: 640
+{% endfor %}
