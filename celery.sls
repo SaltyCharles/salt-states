@@ -33,6 +33,8 @@ celeryd:
         - watch:
             - file: /etc/init.d/celeryd
             - file: /etc/default/celeryd
+        - require:
+            - file: /etc/default/celeryd
         {% endif %}
 {% endif %}
 
