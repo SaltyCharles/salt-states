@@ -1,6 +1,7 @@
 include:
     - python
     - PIL_deps
+    - newrelic
 
 consumeraffairs_deps:
     pkg.installed:
