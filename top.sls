@@ -6,6 +6,9 @@ base:
         - users
         - utils
         - vcs
+    'roles:irc':
+        - match: grain
+        - ngircd
     'roles:server':
         - match: grain
         - locale

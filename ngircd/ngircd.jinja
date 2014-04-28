@@ -1,0 +1,28 @@
+[Global]
+	Name = {{ pillar['irc'].get('server_name', '') }}
+
+	AdminInfo1 = {{ pillar['irc'].get('admin_name', '') }}
+	AdminInfo2 = {{ pillar['irc'].get('admin_location', '') }}
+	AdminEMail = {{ pillar['irc'].get('admin_email', '') }}
+	Info = {{ pillar['irc'].get('name', '') }} IRC network for better communication
+
+	MotdFile = /etc/ngircd/ngircd.motd
+
+	Password = {{ pillar['irc'].get('server_password', '') }}
+	PidFile = /var/run/ngircd/ngircd.pid
+
+	ServerGID = irc
+	ServerUID = irc
+
+[Limits]
+	ConnectRetry = 60
+	MaxConnections = 500
+	MaxConnectionsIP = 10
+	MaxJoins = 10
+	PingTimeout = 120
+	PongTimeout = 20
+
+[Options]
+	OperCanUseMode = yes
+	PAM = no
+	SyslogFacility = local1
