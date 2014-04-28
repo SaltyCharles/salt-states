@@ -9,6 +9,7 @@ base:
     'roles:irc':
         - match: grain
         - ngircd
+        - nodejs10
     'roles:server':
         - match: grain
         - locale
