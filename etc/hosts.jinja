@@ -15,36 +15,40 @@
         {%- if ip %}
             {{ip}} {{fqdn}}{# Note that we specifically exlcude aliases in this case #}
         {%- endif %}
-        {%- for container_fqdn, container in containers|dictsort %}
+        {%- for container_name, container in containers|dictsort %}
             {%- set ip = container.get('eth0') %}
             {%- if ip %}
-                {{ip}} {{container_fqdn}}{% for alias in container.get('aliases', []) %} {{alias}}{% endfor %}
-            {%- endif %}
-        {%- endfor %}
-    {%- elif containers.get(grains['fqdn']) %}
-        {%- set ip = host.get('lxcbr0') %}
-        {%- if ip %}
-            {{ip}} {{fqdn}}
-        {%- endif %}
-        {%- for container_fqdn, container in containers|dictsort %}
-            {%- set ip = container.get('eth0') %}
-            {%- if ip %}
-                {{ip}} {{container_fqdn}}{% for alias in container.get('aliases', []) %} {{alias}}{% endfor %}
+                {{ip}} {{container.get('hostname', container_name)}}{% for alias in container.get('aliases', []) %} {{alias}}{% endfor %}
             {%- endif %}
         {%- endfor %}
     {%- else %}
-        {%- set ip = host.get('eth0') %}
-        {%- if ip %}
-            {{ip}} {{fqdn}}{% for alias in host.get('aliases', []) %} {{alias}}{% endfor %}
-        {%- endif %}
-        {%- for container_fqdn, container in containers|dictsort %}
-            {%- set tun0_ip = container.get('tun0') %}
-            {%- if tun0_ip %}
-                {{tun0_ip}} {{container_fqdn}}.vpn {{container_fqdn}}{% for alias in container.get('aliases', []) %} {{alias}}{% endfor %}
-            {%- endif %}
-
-
+        {%- set same_host = [] %}
+        {%- for name, cont in containers|dictsort %} 
+            {%- if cont.get('hostname') == grains['fqdn'] and same_host.append(name) %}{% endif %}{# check if any LXCs on the container have a hostname matching the fqdn #}
         {%- endfor %}
+        {%- if same_host %}
+            {%- set ip = host.get('lxcbr0') %}
+            {%- if ip %}
+                {{ip}} {{fqdn}}
+            {%- endif %}
+            {%- for container_name, container in containers|dictsort %}
+                {%- set ip = container.get('eth0') %}
+                {%- if ip %}
+                    {{ip}} {{container.get('hostname', container_name)}}{% for alias in container.get('aliases', []) %} {{alias}}{% endfor %}
+                {%- endif %}
+            {%- endfor %}
+        {%- else %}
+            {%- set ip = host.get('eth0') %}
+            {%- if ip %}
+                {{ip}} {{fqdn}}{% for alias in host.get('aliases', []) %} {{alias}}{% endfor %}
+            {%- endif %}
+            {%- for container_name, container in containers|dictsort %}
+                {%- set tun0_ip = container.get('tun0') %}
+                {%- if tun0_ip %}
+                    {{tun0_ip}} {{container.get('hostname', container_name)}}.vpn {{container.get('hostname', container_name)}}{% for alias in container.get('aliases', []) %} {{alias}}{% endfor %}
+                {%- endif %}
+            {%- endfor %}
+        {%- endif %}
     {%- endif %}
 {%- endfor %}
 
