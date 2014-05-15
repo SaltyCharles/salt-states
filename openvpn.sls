@@ -1,5 +1,6 @@
 {% set openvpn_server = pillar.get('openvpn_server', None) %}
 {% set openvpn_servers = pillar.get('openvpn_servers', []) %}
+{% set openvpn_absent = pillar.get('openvpn_absent', []) %}
 openvpn:
     pkg:
         - installed
@@ -12,6 +13,9 @@ openvpn:
             - file: /etc/openvpn/server.conf
             {% endif %}
             {% for server in openvpn_servers %}
+            - file: /etc/openvpn/{{server}}.conf
+            {% endfor %}
+            {% for server in openvpn_absent %}
             - file: /etc/openvpn/{{server}}.conf
             {% endfor %}
 
@@ -45,6 +49,12 @@ mknod_tun:
         - require:
             - pkg: openvpn
 {% endfor %}
+
+{%- for server in openvpn_absent %}
+/etc/openvpn/{{server}}.conf:
+    file:
+        - absent
+{%- endfor %}
 
 {% set crl = pillar.get('openvpn_crl') %}
 {% if crl %}
