@@ -187,11 +187,17 @@ nagios3:
             - pkg.installed: nagios3
 {% endfor %}
 
+/var/lib/nagios3:
+    file.directory:
+        - user: nagios
+        - group: www-data
+        - mode: 751
+
 /var/lib/nagios3/rw:
     file.directory:
         - user: nagios
         - group: www-data
-        - mode: 770
+        - mode: 2710
 
 # Uninstall previous files, or files installed by Ubuntu package
 {% for cf in nagios.get('config_files_absent', []) %}
