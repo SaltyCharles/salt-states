@@ -6,11 +6,6 @@ base:
         - users
         - utils
         - vcs
-    'roles:wordpress':
-        - match: grain
-        - wordpress
-        - php
-        - apache
     'roles:server':
         - match: grain
         - locale
