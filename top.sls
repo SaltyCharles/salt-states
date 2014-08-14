@@ -6,10 +6,11 @@ base:
         - users
         - utils
         - vcs
-    'roles:irc':
+    'roles:wordpress':
         - match: grain
-        - ngircd
-        - nodejs10
+        - wordpress
+        - php
+        - apache
     'roles:server':
         - match: grain
         - locale
