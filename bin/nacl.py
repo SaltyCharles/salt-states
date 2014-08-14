@@ -5,6 +5,7 @@ import json
 import logging
 import logging.handlers
 import os.path
+import requests
 
 _caller = None
 _client = None
@@ -345,6 +346,9 @@ def syncstatic(target, max_retries=10):
 def ping_statsd(target, key):
     return run_manage(target, 'statsd_ping --key %s' % key)
 
+def notify_hipchat(message):
+    requests.get(
+        'http://mgmt.ul:5678/production/message', params={'message': message})
 
 def calling_user():
     import os
@@ -407,6 +411,7 @@ def quick_push(revision=None):
 
 
 def production_push():
+    notify_hipchat('Production Push Started')
     mgmt = pillar_get('consumeraffairs_mgmt')
     web_servers = pillar_get('consumeraffairs_web_servers')
     celery_servers = pillar_get('consumeraffairs_celery_servers')
@@ -439,5 +444,6 @@ def production_push():
         start_celery(mgmt)
     if celerybeat_server:
         start_celerybeat(celerybeat_server)
+    notify_hipchat('Production Push completed')
     ping_statsd(mgmt, 'event.deploy.full.complete')
     logging.info('Production push complete.')
