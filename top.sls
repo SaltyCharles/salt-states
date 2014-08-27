@@ -66,3 +66,4 @@ base:
         - supervisor
         - nodejs
         - brunch
+        - python_uptodate
