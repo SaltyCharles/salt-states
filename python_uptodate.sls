@@ -5,11 +5,9 @@
         - mode: 755
         - user: www-data
         - group: www-data
-        - require:
-            - pkg: python
     
 
-source ~/.virtualenvs/ca/bin/activate && /usr/local/bin/python_uptodate.py:
+/bin/bash -c "source /var/www/.virtualenvs/ca/bin/activate && /usr/local/bin/python_uptodate.py" > /dev/null 2>&1:
     cron.present:
         - user: www-data
         - minute: 3
