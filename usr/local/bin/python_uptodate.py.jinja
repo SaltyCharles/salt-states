@@ -1,0 +1,59 @@
+#!/usr/bin/env python
+
+import subprocess
+import re
+import smtplib
+from smtplib import SMTPException
+from email.mime.text import MIMEText
+import socket
+
+PACKAGE_WHITELIST = []
+DESTINATION_EMAILS = ["{{ pillar['consumeraffairs_software_update_notify'] }}"]
+
+def pip_review():
+    cmd = "pip-review"
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+    (output, err) = p.communicate()
+    if p.returncode == 0:
+        return output.splitlines(True)
+    else:
+        return False
+    
+def send_info(info_string):
+    mail_body = "Hi! Here is your info about available python updates: \n\n%s"\
+        % info_string
+    msg = MIMEText(mail_body)
+    msg['Subject'] = 'Python updates available at %s' % socket.gethostname()
+    msg['From'] = 'Up-to-date Script <no-reply@consummeraffairs.com>'
+    msg['To'] = ', '.join(DESTINATION_EMAILS) 
+    
+    sender = 'no-reply@consummeraffairs.com'
+    receivers = DESTINATION_EMAILS
+
+    try:
+        smtp_obj = smtplib.SMTP('localhost')
+        smtp_obj.sendmail(sender, receivers, msg.as_string())    
+        smtp_obj.quit()
+        return True
+    except SMTPException, e:
+        print e
+        return False
+    
+
+pattern = "(?P<package_name>.+)==(?P<available_version>.+) is \
+available \(you have (?P<installed_version>.+)\).*"
+
+prog = re.compile(pattern)
+outdated_multiline = pip_review()
+output_string = ""
+for line in outdated_multiline:
+    result = prog.match(line)
+    if result.group('package_name').lower() not in PACKAGE_WHITELIST:
+     output_string = output_string + "%s == %s [%s available]\n" % (result.group('package_name'), result.group('installed_version'), result.group('available_version'))
+    
+if output_string != "":
+    if not send_info(output_string):
+        print "Cannot send email!"
+    else:
+        print "Email succesfully sent to %s" % DESTINATION_EMAILS    
+    
