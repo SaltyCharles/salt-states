@@ -1,0 +1,9 @@
+# One entry per line
+# Format: "<CIDR>	0;"
+# E.g.: "192.168.0.0/24	0;"
+# Doc: http://nginx.org/en/docs/http/ngx_http_geo_module.html
+
+{% for cidr in pillar['nginx']['whitelisted_cidr'] %}
+{{ cidr }}	0; {% endfor %} 
+
+

@@ -102,3 +102,12 @@ nginx:
         - group: www-data
         - mode: 640
 {% endfor %}
+
+/etc/nginx/throttling_whitelist.txt:
+    file.managed:
+        - source: salt://etc/nginx/throttling_whitelist.txt.jinja
+        - template: jinja
+        - user: www-data
+        - group: www-data
+        - mode: 640
+
