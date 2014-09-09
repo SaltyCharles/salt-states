@@ -10,7 +10,6 @@ if [ -f $pid_path ]; then
     existing_pid="$(cat $pid_path)"
     if ps -p $existing_pid > /dev/null; then
         # sync process already running
-        echo "already running"
 	exit 0
     fi
 fi
@@ -19,7 +18,7 @@ fi
 echo $own_pid > $pid_path
 
 # do syncing: archive, update files only if source is newer, compress transfer
-rsync -auz $sync_source:/var/www/conaff/ /var/www/conaff
+rsync -auz --timeout=25 $sync_source:/var/www/conaff/ /var/www/conaff
 
 # sync done, remove pid file
 rm $pid_path
