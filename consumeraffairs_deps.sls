@@ -18,3 +18,13 @@ sync_updates_script:
         - mode: 755
         - user: www-data
         - group: www-data
+
+{% if 'prod' in grains.get('roles', []) %}
+sync_cron_uploads:
+    cron.present:
+        - names:
+            - /usr/local/bin/sync_uploads.sh
+            - sleep 30; /usr/local/bin/sync_uploads.sh
+        - user: www-data
+        - minute: '*'
+{% endif %}
