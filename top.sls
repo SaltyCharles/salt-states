@@ -46,6 +46,7 @@ base:
     'roles:nagios':
         - match: grain
         - nagios
+        - ssl_check
     'roles:percona':
         - match: grain
         - percona
