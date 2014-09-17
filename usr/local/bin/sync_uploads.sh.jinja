@@ -18,7 +18,7 @@ fi
 echo $own_pid > $pid_path
 
 # do syncing: archive, update files only if source is newer, compress transfer
-rsync -auz --timeout=25 $sync_source:/var/www/conaff/ /var/www/conaff
+rsync -auz --timeout=25 --exclude=.* --partial-dir=.rsync-tmp --delay-updates $sync_source:/var/www/conaff/ /var/www/conaff
 
 # sync done, remove pid file
 rm $pid_path
