@@ -67,5 +67,7 @@ base:
         - supervisor
         - nodejs
         - brunch
+    'G@roles:web and G@roles:prod':
+        - match: compound
         - python_uptodate
         - linux_uptodate
