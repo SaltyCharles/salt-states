@@ -1,0 +1,84 @@
+#!/usr/bin/env python
+
+import re
+import smtplib
+from smtplib import SMTPException
+from email.mime.text import MIMEText
+import urllib2
+import time
+import sys
+
+RATING_URL = "https://www.ssllabs.com/ssltest/analyze.html?d=consumeraffairs.com"
+CLEAR_URL = "https://www.ssllabs.com/ssltest/clearCache.html?d=consumeraffairs.com"
+GOOD_SCORES = ['A','A-']
+DESTINATION_EMAILS = ["{{ pillar['consumeraffairs_software_update_notify'] }}"]
+
+def get_score(html):
+    regex = re.compile("\\<span\\ style=\"font\\-size:\\ 0.80em\"\\>(?P<score>.{1,2})\\</span\\>")
+    match = regex.search(html)
+   
+    if match:
+        return match.group('score')
+    else:
+        return False
+    
+def get_ssllab_html():
+    try:
+        # Clear SSL Lab's cache
+        urllib2.urlopen(CLEAR_URL)
+
+        # Trigger analysis
+        urllib2.urlopen(RATING_URL)
+
+        # Wait analysis to finish
+        time.sleep(120)
+
+        # Now check the results
+        response_result = urllib2.urlopen(RATING_URL)
+        html = response_result.read()
+        return html
+    except Exception, e:
+        print e
+    
+
+def send_info(info_string):
+    mail_body = info_string
+    msg = MIMEText(mail_body)
+    msg['Subject'] = 'SSL Rating by SSL Labs'
+    msg['From'] = 'SSL Check Script <no-reply@consummeraffairs.com>'
+    msg['To'] = ', '.join(DESTINATION_EMAILS) 
+    
+    sender = 'no-reply@consummeraffairs.com'
+    receivers = DESTINATION_EMAILS
+
+    try:
+        smtp_obj = smtplib.SMTP('localhost')
+        smtp_obj.sendmail(sender, receivers, msg.as_string())    
+        smtp_obj.quit()
+        return True
+    except SMTPException, e:
+        print e
+
+
+# Get rating
+html = get_ssllab_html()
+score = get_score(html)
+
+# Build info to mail
+info = ""
+if not score:
+    info = "There was a problem getting the SSL rating at SSL Labs.\n\
+Please visit {}.".format(RATING_URL)
+elif score not in GOOD_SCORES:
+    info = "SSL Labs says we are not scoring well [{}].\n\
+Please visit: {}.".format(score, RATING_URL)
+            
+
+# Send email if there's something to say
+if info != "":
+    if not send_info(info):
+        print "Cannot send email!"
+    else:
+        print "Email succesfully sent to {}".format(DESTINATION_EMAILS)   
+
+
