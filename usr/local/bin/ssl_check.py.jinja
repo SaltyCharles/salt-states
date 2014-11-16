@@ -6,14 +6,15 @@ from smtplib import SMTPException
 from email.mime.text import MIMEText
 import urllib2
 import time
-import sys
 
 RATING_URL = "https://www.ssllabs.com/ssltest/analyze.html?d=consumeraffairs.com"
 CLEAR_URL = "https://www.ssllabs.com/ssltest/clearCache.html?d=consumeraffairs.com"
 GOOD_SCORES = ['A','A-']
 DESTINATION_EMAILS = ["{{ pillar['consumeraffairs_software_update_notify'] }}"]
+RETRIES = 20
+SLEEP_TIME = 120
 
-def get_score(html):
+def read_score(html):
     regex = re.compile("\\<span\\ style=\"font\\-size:\\ 0.80em\"\\>(?P<score>.{1,2})\\</span\\>")
     match = regex.search(html)
    
@@ -22,21 +23,26 @@ def get_score(html):
     else:
         return False
     
-def get_ssllab_html():
+def get_score():
     try:
         # Clear SSL Lab's cache
         urllib2.urlopen(CLEAR_URL)
 
         # Trigger analysis
         urllib2.urlopen(RATING_URL)
+        
+        score = False
+        retries_left = RETRIES
+        while not score and retries_left > 0:
+            # Wait analysis to finish
+            time.sleep(SLEEP_TIME)
 
-        # Wait analysis to finish
-        time.sleep(300)
-
-        # Now check the results
-        response_result = urllib2.urlopen(RATING_URL)
-        html = response_result.read()
-        return html
+            # Now check the results
+            response_result = urllib2.urlopen(RATING_URL)
+            score = read_score(response_result.read())
+            retries_left -= 1
+        
+        return score
     except Exception, e:
         print e
     
@@ -61,8 +67,7 @@ def send_info(info_string):
 
 
 # Get rating
-html = get_ssllab_html()
-score = get_score(html)
+score = get_score()
 
 # Build info to mail
 info = ""
