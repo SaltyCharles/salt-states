@@ -10,7 +10,7 @@ import time
 RATING_URL = "https://www.ssllabs.com/ssltest/analyze.html?d=consumeraffairs.com"
 CLEAR_URL = "https://www.ssllabs.com/ssltest/clearCache.html?d=consumeraffairs.com"
 GOOD_SCORES = ['A','A-']
-DESTINATION_EMAILS = ["{{ pillar['consumeraffairs_software_update_notify'] }}"]
+DESTINATION_EMAILS = ["{{ pillar['nagios']['update_notify_email'] }}"]
 RETRIES = 20
 SLEEP_TIME = 120
 

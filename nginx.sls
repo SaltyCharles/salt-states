@@ -21,6 +21,12 @@ nginx:
             - file: /etc/nginx/sites-enabled/{{site}}
 {% endfor %}
 
+/etc/nginx/nginx.conf:
+    file.managed:
+        - source: salt://etc/nginx/nginx.conf
+        - require:
+            - pkg: nginx
+
 {% for site in sites %}
 /etc/nginx/sites-available/{{site}}:
     file.managed:

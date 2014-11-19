@@ -104,10 +104,10 @@ def add_sets_from_list(l, name):
         sets.add(name)
         keeps[path] = sets
 
-add_sets_from_items(years, 'year')
-add_sets_from_items(months, 'month')
+# add_sets_from_items(years, 'year')
+# add_sets_from_items(months, 'month')
 add_sets_from_items(days, 'day')
-add_sets_from_items(weeks, 'week')
+# add_sets_from_items(weeks, 'week')
 add_sets_from_list(off_hour, 'off-hour')
 add_sets_from_list(no_match, 'unknown')
 

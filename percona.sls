@@ -61,6 +61,9 @@ mysql:
         - watch:
             - file: /etc/mysql/my.cnf
 
+awscli:
+    pip.installed
+
 /var/backups/database:
     file.directory:
         - mode: 770
@@ -167,3 +170,30 @@ mysql:
         - group: backup
         - require:
             - file: /var/backups/bin
+
+/var/backups/.aws:
+    file.directory:
+        - mode: 770
+        - user: backup
+        - group: backup
+
+/var/backups/.aws/config:
+    file.managed:
+        - source: salt://var/backups/aws_config
+        - mode: 600
+        - user: backup
+        - group: backup
+        - makedirs: True
+        - require:
+            - file: /var/backups/.aws
+
+/var/backups/.aws/credentials:
+    file.managed:
+        - source: salt://var/backups/aws_credentials
+        - template: jinja
+        - mode: 600
+        - user: backup
+        - group: backup
+        - makedirs: True
+        - require:
+            - file: /var/backups/.aws

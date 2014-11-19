@@ -8,6 +8,8 @@ echo "Started at `date`" > $LOG
 {%- set backup = pillar.get('percona', {}).get('backup', {}) %}
 {%- set user = backup.get('db_user', 'backup') %}
 {%- set password = backup.get('password', 'SET_PASSWORD_IN_PILLAR') %}
+{%- set gpg_key = backup.get('backup_gpg_key', 'insecure_gpg_key') %}
+{%- set s3_bucket = backup.get('s3_bucket', 'backups') %}
 
 /var/backups/bin/stop_replication >> $LOG
 echo "Replication status is now:" >> $LOG
@@ -31,8 +33,16 @@ chmod --quiet 664 $DB_FINAL
 
 echo "Dump complete." >> $LOG
 /var/backups/bin/start_replication >> $LOG
+
+ENCRYPT_TMP="/tmp/${HOSTNAME}_${NOW}.sql.gz.gpg"
+gpg -c --passphrase "{{gpg_key}}" -o $ENCRYPT_TMP $DB_FINAL &>> $LOG
+/usr/local/bin/aws s3 cp $ENCRYPT_TMP s3://{{s3_bucket}} >> $LOG
+rm $ENCRYPT_TMP
+
 echo "Cleaning up backups..." >> $LOG
 /var/backups/bin/clean_backups >> $LOG
 echo "Stopped at `date`" >> $LOG
 chown --quiet backup:backup $LOG
 chmod --quiet 664 $LOG
+
+/usr/local/bin/aws s3 cp $LOG s3://{{s3_bucket}} >> $LOG
