@@ -35,7 +35,7 @@ echo "Dump complete." >> $LOG
 /var/backups/bin/start_replication >> $LOG
 
 ENCRYPT_TMP="/tmp/${HOSTNAME}_${NOW}.sql.gz.gpg"
-gpg -c --passphrase "{{gpg_key}}" -o $ENCRYPT_TMP $DB_FINAL &>> $LOG
+gpg --no-use-agent -c --passphrase "{{gpg_key}}" -o $ENCRYPT_TMP $DB_FINAL &>> $LOG
 /usr/local/bin/aws s3 cp $ENCRYPT_TMP s3://{{s3_bucket}} >> $LOG
 rm $ENCRYPT_TMP
 
