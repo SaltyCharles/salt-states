@@ -33,7 +33,7 @@ def check_refresh_page(html):
 def get_score():
     try:
         # Clear SSL Lab's cache
-        requests.get(RATING_URL)
+        requests.get(CLEAR_URL)
         
         # Trigger analysis
         refresh_page = True
@@ -67,10 +67,9 @@ def send_info(info_string):
     except SMTPException, e:
         print e
     
-
-
 # Get rating
 score = get_score()
+
 
 # Build info to mail
 info = ""
@@ -87,5 +86,6 @@ if info != "":
         print "Cannot send email!"
     else:
         print "Email succesfully sent to {}".format(DESTINATION_EMAILS)   
+
 
 
