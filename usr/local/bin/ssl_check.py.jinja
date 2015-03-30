@@ -4,44 +4,46 @@ import re
 import smtplib
 from smtplib import SMTPException
 from email.mime.text import MIMEText
-import urllib2
 import time
+from BeautifulSoup import BeautifulSoup
+import requests
 
 RATING_URL = "https://www.ssllabs.com/ssltest/analyze.html?d=consumeraffairs.com"
 CLEAR_URL = "https://www.ssllabs.com/ssltest/clearCache.html?d=consumeraffairs.com"
 GOOD_SCORES = ['A','A-']
 DESTINATION_EMAILS = ["{{ pillar['nagios']['update_notify_email'] }}"]
-RETRIES = 20
-SLEEP_TIME = 120
+SLEEP_TIME = 10
 
-def read_score(html):
-    regex = re.compile("\\<span\\ style=\"font\\-size:\\ 0.80em\"\\>(?P<score>.{1,2})\\</span\\>")
-    match = regex.search(html)
    
+def read_score(html):
+    soup = BeautifulSoup(html)
+    divs = soup.findAll('div', {"class" : "rating_a"})
+    return divs[0].text
+    
+    
+def check_refresh_page(html):
+    regex = re.compile("refresh_page")
+    match = regex.search(html)
     if match:
-        return match.group('score')
+        return True
     else:
         return False
+    
     
 def get_score():
     try:
         # Clear SSL Lab's cache
-        urllib2.urlopen(CLEAR_URL)
-
+        requests.get(CLEAR_URL)
+        
         # Trigger analysis
-        urllib2.urlopen(RATING_URL)
-        
-        score = False
-        retries_left = RETRIES
-        while not score and retries_left > 0:
-            # Wait analysis to finish
+        refresh_page = True
+        while refresh_page:
             time.sleep(SLEEP_TIME)
-
-            # Now check the results
-            response_result = urllib2.urlopen(RATING_URL)
-            score = read_score(response_result.read())
-            retries_left -= 1
-        
+            r2 = requests.get(RATING_URL)
+            html_page = r2.text
+            refresh_page = check_refresh_page(html_page)
+            
+        score = read_score(html_page)
         return score
     except Exception, e:
         print e
@@ -64,20 +66,19 @@ def send_info(info_string):
         return True
     except SMTPException, e:
         print e
-
-
+    
 # Get rating
 score = get_score()
+
 
 # Build info to mail
 info = ""
 if not score:
-    info = "There was a problem getting the SSL rating at SSL Labs.\n\
-Please visit {}.".format(RATING_URL)
+    info = "There was a problem getting the SSL rating at SSL Labs.\
+            Please visit {}.".format(RATING_URL)
 elif score not in GOOD_SCORES:
-    info = "SSL Labs says we are not scoring well [{}].\n\
-Please visit: {}.".format(score, RATING_URL)
-            
+    info = "SSL Labs says we are not scoring well [{}].\
+            Please visit: {}.".format(score, RATING_URL)
 
 # Send email if there's something to say
 if info != "":
@@ -85,5 +86,6 @@ if info != "":
         print "Cannot send email!"
     else:
         print "Email succesfully sent to {}".format(DESTINATION_EMAILS)   
+
 
 
